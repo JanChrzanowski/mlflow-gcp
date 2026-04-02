@@ -108,7 +108,6 @@ resource "google_secret_manager_secret_iam_member" "kek_access" {
   depends_on = [module.service_account]
 }
 
-# ── 1. GCS artifact bucket ─────────────────────────────────────────────────────
 module "gcs" {
   source = "./modules/gcs"
 
@@ -120,7 +119,6 @@ module "gcs" {
   depends_on = [google_project_service.apis]
 }
 
-# ── 2. Cloud SQL — database + user on existing 'maindb' instance ──────────────
 module "cloud_sql" {
   source = "./modules/cloud_sql"
 
@@ -134,7 +132,6 @@ module "cloud_sql" {
   depends_on = [google_project_service.apis]
 }
 
-# ── 3. Service account ─────────────────────────────────────────────────────────
 module "service_account" {
   source = "./modules/service_account"
 
@@ -146,7 +143,6 @@ module "service_account" {
   depends_on = [module.cloud_sql]
 }
 
-# ── GCS IAM bindings (outside modules to break the circular dependency) ────────
 resource "google_storage_bucket_iam_member" "mlflow_artifact_admin" {
   bucket = module.gcs.bucket_name
   role   = "roles/storage.objectAdmin"
@@ -159,15 +155,12 @@ resource "google_storage_bucket_iam_member" "mlflow_legacy_bucket_reader" {
   member = module.service_account.member
 }
 
-# Secret access for demo password (added after SA is created)
 resource "google_secret_manager_secret_iam_member" "demo_password_access" {
   project   = var.project_id
   secret_id = google_secret_manager_secret.mlflow_demo_password.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = module.service_account.member
 }
-
-# ── 4. Cloud Run — MLflow Tracking Server ─────────────────────────────────────
 module "cloud_run" {
   source = "./modules/cloud_run"
 

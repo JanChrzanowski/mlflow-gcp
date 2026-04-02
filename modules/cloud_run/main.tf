@@ -25,7 +25,6 @@ resource "google_cloud_run_v2_service" "mlflow" {
 
   deletion_protection = false
 
-  # All external HTTPS traffic is accepted; auth is handled by MLflow basic-auth
   ingress = "INGRESS_TRAFFIC_ALL"
 
   template {
@@ -36,7 +35,6 @@ resource "google_cloud_run_v2_service" "mlflow" {
       max_instance_count = var.max_instances
     }
 
-    # ── Cloud SQL Unix socket ──────────────────────────────────────────────────
     volumes {
       name = "cloudsql"
       cloud_sql_instance {
@@ -62,9 +60,7 @@ resource "google_cloud_run_v2_service" "mlflow" {
         mount_path = "/cloudsql"
       }
 
-      # ── Static env vars ────────────────────────────────────────────────────
-      # URI zawiera placeholder DB_PASSWORD — entrypoint.sh podstawia go po
-      # URL-encodowaniu hasła przez Pythona (bezpieczne dla znaków specjalnych)
+
       env {
         name  = "MLFLOW_BACKEND_STORE_URI"
         value = local.backend_store_uri
@@ -85,8 +81,6 @@ resource "google_cloud_run_v2_service" "mlflow" {
         value = "0.0.0.0"
       }
 
-      # MLflow 3.x TrustedHostMiddleware (wymaga uvicorn, nie Gunicorn)
-      # Docelowo zastąp '*' konkretną domeną po zmapowaniu
       env {
         name  = "MLFLOW_SERVER_ALLOWED_HOSTS"
         value = "*"

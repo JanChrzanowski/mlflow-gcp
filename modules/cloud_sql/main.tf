@@ -1,18 +1,8 @@
-###############################################################################
-# Module: cloud_sql
-# References an EXISTING Cloud SQL instance (maindb) and provisions:
-#   - mlflow database
-#   - mlflow user
-#   - DB password stored in Secret Manager
-###############################################################################
-
-# ── Reference existing Cloud SQL instance ─────────────────────────────────────
 data "google_sql_database_instance" "maindb" {
   project = var.project_id
   name    = var.instance_name
 }
 
-# ── MLflow database ────────────────────────────────────────────────────────────
 resource "google_sql_database" "mlflow" {
   project  = var.project_id
   instance = data.google_sql_database_instance.maindb.name
@@ -20,7 +10,6 @@ resource "google_sql_database" "mlflow" {
   charset  = "UTF8"
 }
 
-# ── DB password: generated + stored in Secret Manager ─────────────────────────
 resource "random_password" "mlflow_db" {
   length           = 32
   special          = true
@@ -43,7 +32,6 @@ resource "google_secret_manager_secret_version" "db_password" {
   secret_data = random_password.mlflow_db.result
 }
 
-# ── MLflow DB user ─────────────────────────────────────────────────────────────
 resource "google_sql_user" "mlflow" {
   project  = var.project_id
   instance = data.google_sql_database_instance.maindb.name

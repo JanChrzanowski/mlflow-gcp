@@ -1,14 +1,10 @@
-###############################################################################
-# Module: gcs
-# MLflow artifact store bucket with versioning, lifecycle and uniform access
-###############################################################################
+
 
 resource "google_storage_bucket" "artifacts" {
   project  = var.project_id
   name     = "${var.prefix}-mlflow-artifacts"
   location = var.location
 
-  # Uniform bucket-level access — disables per-object ACLs
   uniform_bucket_level_access = true
 
   versioning {
@@ -35,7 +31,6 @@ resource "google_storage_bucket" "artifacts" {
     }
   }
 
-  # Prevent accidental deletion via Terraform destroy
   lifecycle {
     prevent_destroy = true
   }

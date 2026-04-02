@@ -23,7 +23,6 @@ output "db_password_secret_version" {
   value       = google_secret_manager_secret_version.db_password.name
 }
 
-# Convenience output: MLflow backend store URI using Unix socket (Cloud SQL proxy)
 output "backend_store_uri_template" {
   description = "MLflow backend store URI — substitute CONNECTION_NAME at deploy time"
   value       = "postgresql+psycopg2://${google_sql_user.mlflow.name}:DB_PASSWORD@/${google_sql_database.mlflow.name}?host=/cloudsql/${data.google_sql_database_instance.maindb.connection_name}"

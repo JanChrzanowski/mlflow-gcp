@@ -2,41 +2,6 @@
 
 Production-ready MLflow Tracking Server deployed on Google Cloud Platform using fully-managed Terraform infrastructure.
 
-## Architecture
-
-```
-                  ┌──────────────────────────────────────────┐
-                  │             Google Cloud Run              │
-                  │                                           │
-  User / Client   │  ┌────────────────────────────────────┐  │
-  ───────────────►│  │     MLflow Tracking Server          │  │
-  HTTPS + BasicAuth│  │   (basic-auth plugin enabled)       │  │
-                  │  │                                    │  │
-                  │  │  admin     → MANAGE permission     │  │
-                  │  │  demo_user → EDIT   permission     │  │
-                  │  └──────┬─────────────────┬───────────┘  │
-                  │         │ Unix socket      │ GCS client   │
-                  └─────────┼─────────────────┼──────────────┘
-                            │                 │
-                  ┌─────────▼──────┐  ┌───────▼────────────┐
-                  │  Cloud SQL     │  │  Cloud Storage      │
-                  │  (maindb)      │  │  Artifact Bucket    │
-                  │  DB: mlflow    │  │  gs://…/mlflow-     │
-                  │  User: mlflow  │  │  artifacts/         │
-                  └────────────────┘  └────────────────────┘
-```
-
-**Security model:**
-- Cloud Run exposes HTTPS only (Google-managed TLS)
-- MLflow built-in `basic-auth` plugin enforces authentication on every endpoint
-- `default_permission = NO_PERMISSIONS` — unauthenticated requests are rejected by MLflow
-- Passwords generated with `random_password`, never stored in Terraform state — stored in **Secret Manager**
-- Cloud SQL is **not publicly accessible** — connected via Cloud SQL Auth Proxy Unix socket
-- Service account has minimum required IAM roles (least privilege)
-
-> **Roadmap:** To add network-level zero-trust access, front Cloud Run with a Global Load Balancer + Identity-Aware Proxy (IAP). A `modules/load_balancer` stub is ready to be added.
-
----
 
 ## Prerequisites
 

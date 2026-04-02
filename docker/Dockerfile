@@ -30,29 +30,24 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-# ── Final stage ────────────────────────────────────────────────────────────────
 FROM base
 
 LABEL maintainer="your-team@example.com" \
       org.opencontainers.image.title="MLflow Tracking Server" \
       org.opencontainers.image.description="MLflow on Cloud Run with Cloud SQL + GCS"
 
-# Non-root user for security
 RUN groupadd --gid 1001 mlflow && \
     useradd  --uid 1001 --gid mlflow --shell /bin/bash --create-home mlflow
 
-# Copy installed packages from builder
 COPY --from=builder /install /usr/local
 
 WORKDIR /app
 
-# Copy entrypoint and auth config
 COPY --chown=mlflow:mlflow entrypoint.sh /app/entrypoint.sh
 COPY --chown=mlflow:mlflow basic_auth.ini /app/basic_auth.ini
 
 RUN chmod +x /app/entrypoint.sh
 
-# Cloud Run always uses port 8080
 EXPOSE 8080
 
 USER mlflow
